@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+    <!-- 引入 echarts.js -->
+    <script src="./echarts.js"></script>
+</head>
+
+
+<body>
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="width: 800px;height:400px;"></div>
+    <script>
+
+        let date = [];
+        let data = [];
+
+        //(1).实例化ajax对象
+        let xhr = new XMLHttpRequest();
+        //(2).设置请求方法和地址
+        xhr.open('get', 'http://localhost:8080/api/v1/admin/data/article');
+        //(3).设置请求头（post请求才需要设置）
+        xhr.setRequestHeader('Authorization', 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiYWRtaW4iLCJleHAiOjIyMDc3ODQ3ODgsImlhdCI6MTYwMjk4NDc4OH0.6D8UV5k9R-1Vn-GFDCHyfYijxhHXvqxChAyBtM9loS_NNzwPTxXzPtmOY-QSOBc7qqMasDYddTwOP1efjAY7ixOfMweceRnr8jd-dw5J0sD8kg6Fuik37Y91Y9cTHkk3Dm_xLfjHZi_V2tUNOK5pqwpIlWsavsoBVXsrZk42AJo');
+        //(4).发送请求 ： 参数格式  'key=value' 
+        xhr.send();
+        //(5).注册回调函数
+        xhr.onload = function () {
+            // console.log(xhr.responseText);
+            let backData = JSON.parse(xhr.responseText);
+            for (let i = 0; i < backData.date.length; i++) {
+                date.push(backData.date[i].date);
+                data.push(backData.date[i].count);
+            }
+            getLinePic();
+        };
+
+        // 基于准备好的dom，初始化echarts实例
+        function getLinePic() {
+            let myChart = echarts.init(document.getElementById('main'));
+
+            // 指定图表的配置项和数据
+            let option = {
+                tooltip: {
+                    trigger: 'axis',
+                    position: function (pt) {
+                        return [pt[0], '10%'];
+                    }
+                },
+                legend: {
+                    data: ['新增文章'],
+                    top: 30
+                },
+                title: {
+                    left: 'center',
+                    text: '月新增文章数',
+                },
+                toolbox: {
+                    show: true,
+                    feature: {
+                        dataZoom: {
+                            yAxisIndex: 'none'
+                        },
+                        dataView: { readOnly: false },
+                        magicType: { type: ['line', 'bar'] },
+                        restore: {},
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: date,
+                    name: '日'
+                },
+                yAxis: {
+                    type: 'value',
+                    boundaryGap: [0, '100%']
+                },
+
+                series: [
+                    {
+                        name: '新增文章',
+                        type: 'line',
+                        smooth: true,
+                        symbol: 'emptyCircle',
+                        symbolSize: '8',
+                        sampling: 'average',
+                        itemStyle: {
+                            color: '#ff8b08'
+                        },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                offset: 0,
+                                color: '#ffe2bd'
+                            }, {
+                                offset: 1,
+                                color: '#fffffc'
+                            }])
+                        },
+                        data: data
+                    }
+                ]
+            };
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+
+        }
+
+    </script>
+</body>
+
+</html>
